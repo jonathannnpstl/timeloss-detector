@@ -1,0 +1,14 @@
+body {
+    font-family: sans-serif;
+    padding: 10px;
+  }
+  h2 {
+    margin-bottom: 10px;
+  }
+  #stats p {
+    margin: 4px 0;
+  }
+  #falseStartURLs {
+    margin-top: 10px;
+    padding-left: 20px;
+  }

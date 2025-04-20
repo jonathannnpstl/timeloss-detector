@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Time Loss Stats</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <h2>Time Loss Summary</h2>
+  <div id="stats">
+    <p><strong>Tab Switches:</strong> <span id="switchCount">0</span></p>
+    <p><strong>Idle Episodes:</strong> <span id="idleEpisodes">0</span></p>
+    <p><strong>Total Idle Time (s):</strong> <span id="idleTime">0</span></p>
+    <p><strong>False Starts:</strong> <span id="falseStarts">0</span></p>
+    <p><strong>Current Status:</strong> <span id="idleStatus">Checking...</span></p>
+
+    <ul id="falseStartURLs"></ul>
+    <div id="chart"></div>
+  </div>
+  <svg viewBox="0 0 400 400" id="clockSVG"></svg>
+  <script src="/libs/apexcharts.min.js"></script>
+  <script src="chart.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
