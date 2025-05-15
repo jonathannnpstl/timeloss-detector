@@ -1,24 +1,34 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Time Loss Stats</title>
-  <link rel="stylesheet" href="popup.css">
-</head>
-<body>
-  <h2>Time Loss Summary</h2>
-  <div id="stats">
-    <p><strong>Tab Switches:</strong> <span id="switchCount">0</span></p>
-    <p><strong>Idle Episodes:</strong> <span id="idleEpisodes">0</span></p>
-    <p><strong>Total Idle Time (s):</strong> <span id="idleTime">0</span></p>
-    <p><strong>False Starts:</strong> <span id="falseStarts">0</span></p>
-    <p><strong>Current Status:</strong> <span id="idleStatus">Checking...</span></p>
-
-    <ul id="falseStartURLs"></ul>
-    <div id="chart"></div>
-  </div>
-  <svg viewBox="0 0 400 400" id="clockSVG"></svg>
-  <script src="/libs/apexcharts.min.js"></script>
-  <script src="chart.js"></script>
-  <script src="popup.js"></script>
-</body>
+  <head>
+    <title>Idle Summary</title>
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body>
+    <div class="container" id="top-container">
+      <h2>Idle Time Visualization</h2>
+        <div id="dailyStatsChart">
+          <svg width="300" height="300" viewBox="0 0 400 400">
+            <circle cx="200" cy="200" r="140" stroke="#222" stroke-width="30" fill="none" />
+          <g id="segments"></g>
+          <g id="labels"></g>
+          <text id="center-text" class="today" x="200" y="155">Today</text> 
+          <text id="center-text" class="time" x="200" y="200">0m</text>
+          <text id="center-text" class="duration" x="200" y="235">Idle Duration</text> <!-- Center text added -->
+        </svg>
+      </div>
+    </div>
+  
+    <div class="container" id="middle-container">
+      <h2>Statistics and Summary</h2>
+      <div id="weeklyStatsChart"></div>
+    </div>
+  
+    <div class="container" id="bottom-container">
+      <h2>Settings & Controls</h2>
+    </div>
+    
+    <script src="/libs/chart.umd.js"></script>
+    <script type="module" src="popup.js" ></script>
+  </body>
 </html>

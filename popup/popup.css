@@ -1,14 +1,58 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-    font-family: sans-serif;
-    padding: 10px;
-  }
-  h2 {
-    margin-bottom: 10px;
-  }
-  #stats p {
-    margin: 4px 0;
-  }
-  #falseStartURLs {
-    margin-top: 10px;
-    padding-left: 20px;
-  }
+  background: #111;
+  color: white;
+  font-family: sans-serif;
+  width: 500px;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  align-items: stretch;
+  flex-direction: column;
+  margin: 10px;
+}
+
+.container > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.container:last-child {
+  border-bottom: none;
+}
+
+.hour-label {
+  font-size: 10px;
+  fill: white;
+}
+
+#center-text {
+/*       font-size: 18px; */
+  fill: white;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+path:hover {
+  cursor: pointer;
+}
+
+.time {
+font-size: 58px;
+}
+
+.today {
+font-size: 24px;
+}
+.duration {
+  font-size: 18px;
+}

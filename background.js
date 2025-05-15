@@ -1,152 +1,184 @@
-/** 
-each day should track the duration of idleness
-as well as the duration of browser open
-
-so, there are horizontal bars side by side to
-visually compare the two
-
-
-TO ADD:
-so there should be this circular graph, 
-this represents to hours/time in a day.
-And particular portion of the graph are
-shaded by particular color, representing 
-the duration of web open and idleness,
-with respect to time
+/**
+ * Background script for the Idle Tracker Extension
  * 
+ * This script monitors user activity and idle states, tracking the time spent
+ * in idle or locked states. It integrates with the ActivityStorage system
+ * to maintain detailed activity records.
  */
 
+import { activityStorage } from './utils/storage.js';
+
+class IdleTracker {
+  constructor() {
+    this.idleStart = null;
+    this.keepAlivePort = null;
+    this.keepAliveInterval = null;
+    this.initialize();
+  }
+
+  /**
+   * Initializes the idle tracker
+   */
+  async initialize() {
+    // Setup idle detection first
+    this.setupIdleDetection();
+    
+    // Start keep-alive mechanisms
+    this.startKeepAlive();
+    
+    // Add lifecycle listeners
+    this.setupLifecycleListeners();
+    
+    console.log("Idle Tracker initialized with keep-alive");
+  }
 
 
-let activeTabId = null;
-let tabStartTime = null;
 
-let switchCount = 0;
-let falseStartCount = 0;
-let idleEpisodeCount = 0;
-let totalIdleDuration = 0;
-let idleStartTime = null;
+  /**
+   * Sets up keep-alive mechanisms to prevent service worker termination
+   */
+  startKeepAlive() {
+    // Chrome alarms (most reliable)
+    chrome.alarms.create('keepAlive', { periodInMinutes: 4 });
+    chrome.alarms.onAlarm.addListener((alarm) => {
+      if (alarm.name === 'keepAlive') {
+        this.verifyState();
+      }
+    });
+  }
 
-// const FALSE_START_THRESHOLD = 30 * 1000; // 30 sec
+  /**
+   * Verifies current state and recovers if needed
+   */
+  async verifyState() {
+    try {
+      const currentState = await chrome.idle.queryState(15);
+      const now = new Date();
+      
+      // Check if we missed any state transitions
+      if (currentState !== 'active' && !this.idleStart) {
+        // Missed idle start
+        await this.handleIdleStart(now);
+      } else if (currentState === 'active' && this.idleStart) {
+        // Missed active state
+        const today = now.toISOString().split("T")[0];
+        await this.handleIdleEnd(now, today);
+      }
+    } catch (error) {
+      console.error("State verification failed:", error);
+    }
+  }
 
-// function updateDailyStats(key, value) {
-//   const today = new Date().toISOString().slice(0, 10);
-//   chrome.storage.local.get(["history"], (data) => {
-//     const history = data.history || {};
-//     const todayStats = history[today] || { switches: 0, idleEpisodes: 0, idleDuration: 0, state: "" };
-
-//     if (key === "switch") todayStats.switches += value;
-//     if (key === "idleEpisode") todayStats.idleEpisodes += value;
-//     if (key === "idleDuration") todayStats.idleDuration += value;
-//     if (key === "state") todayStats.state = value;
-
-
-//     history[today] = todayStats;
-//     chrome.storage.local.set({ history });
-//   });
-// }
-
-// // Tab switches + false starts
-// chrome.tabs.onActivated.addListener((activeInfo) => {
-//   const now = Date.now();
-
-//   if (activeTabId !== null && activeTabId !== activeInfo.tabId) {
-//     switchCount++;
-//     chrome.storage.local.set({ switchCount });
-//     updateDailyStats("switch", 1);
-//   }
-
-//   if (activeTabId !== null && tabStartTime !== null) {
-//     const timeSpent = now - tabStartTime;
-
-//     if (timeSpent < FALSE_START_THRESHOLD) {
-//       chrome.tabs.get(activeTabId, (tab) => {
-//         if (chrome.runtime.lastError || !tab) return;
-
-//         const url = tab.url;
-//         falseStartCount++;
-
-//         chrome.storage.local.get(["falseStartURLs"], (data) => {
-//           const urls = data.falseStartURLs || [];
-//           urls.push({ url, time: new Date().toISOString() });
-
-//           chrome.storage.local.set({
-//             falseStartCount,
-//             falseStartURLs: urls
-//           });
-//         });
-//       });
-//     }
-//   }
-
-//   activeTabId = activeInfo.tabId;
-//   tabStartTime = now;
-// });
-
-
-chrome.runtime.onStartup.addListener(() => {
-    console.log("🌅 Extension started");
-});
-
-chrome.runtime.onInstalled.addListener(() => {
-    console.log("🔧 Extension installed");
-});
-
-
-chrome.runtime.onConnect.addListener((port) => {
-    console.log("Connected to content script:", port.name);
-    port.onMessage.addListener((msg) => {
-      if (msg.type == "idle-status") {
-        console.log("Status from content script:", msg.status);
-        const now = Date.now()
-        const today = new Date().toISOString().split("T")[0]
-
-        if (msg.status == "idle") {
-              idleStartTime = now;
-              console.log("User is idle...");
-            }
-
-            if (msg.status === "active" && idleStartTime !== null) {
-              
-              const idleTime = now - idleStartTime;
-              totalIdleDuration += idleTime;
-              idleStartTime = null;
-              
-              
-              // store daily idle duration
-              chrome.storage.local.get(["dailyIdleTimes"], (data) => {
-                const daily = data.dailyIdleTimes || {};
-                daily[today] = (daily[today] || 0) + idleDuration;
-                
-                chrome.storage.local.set({
-                  totalIdleDuration,
-                  dailyIdleTimes: daily,
-                });
-                
-                console.log(`Idle time today: ${Math.round(daily[today] / 1000)}s`);
-                console.log(`Total idle: ${Math.round(totalIdleDuration / 1000)}s`);
-              });
-              
-
-              // store overall idle duration
-              chrome.storage.local.set({ totalIdleDuration });
-              console.log(`User was idle for ${Math.round(idleTime / 1000)} seconds`);
-              console.log(`Total idle time: ${Math.round(totalIdleDuration / 1000)} seconds`);
-            }
-
-            // store the current status: active | idle
-            chrome.storage.local.set({ currentIdleState: msg.status });
-        }
-
-        
-  
+   /**
+   * Sets up lifecycle event listeners
+   */
+  setupLifecycleListeners() {
+    // Handle service worker startup
+    chrome.runtime.onStartup.addListener(() => {
+      console.log("Browser started - reinitializing");
+      this.initialize();
     });
 
-    port.postMessage({ greeting: "Hello from background!" });
-  
-    port.onDisconnect.addListener(() => {
-      console.log("Content script disconnected");
+    // Handle extension installation/update
+    chrome.runtime.onInstalled.addListener((details) => {
+      console.log(`Extension ${details.reason} - initializing`);
+      this.initialize();
     });
-  });
-  
-  
+
+    // Handle incoming messages (for keep-alive)
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request.type === 'keepAlivePing') {
+        sendResponse({ alive: true });
+      }
+      return true; // Required for async response
+    });
+  }
+
+  /**
+   * Sets up idle detection with appropriate interval
+   */
+  setupIdleDetection() {
+    // Set detection interval to 15 seconds
+    chrome.idle.setDetectionInterval(15);
+    // chrome.idle.onStateChanged.addListener((state) => this.handleIdleState(state));
+    chrome.idle.onStateChanged.addListener(this.handleIdleState.bind(this));
+  }
+
+  /**
+   * Handles state changes between active and idle/locked states
+   * @param {string} state - Current state ("active", "idle", or "locked")
+   */
+  async handleIdleState(state) {
+    const now = new Date();
+    const today = now.toISOString().split("T")[0];
+
+    try {
+      if (state === "idle" || state === "locked") {
+        await this.handleIdleStart(now);
+      } else if (state === "active" && this.idleStart) {
+        await this.handleIdleEnd(now, today);
+      }
+    } catch (error) {
+      console.error("Error handling idle state:", error);
+    }
+  }
+
+  /**
+   * Handles the start of an idle period
+   * @param {Date} startTime - When the idle period started
+   */
+  async handleIdleStart(startTime) {
+    this.idleStart = startTime;
+    console.log("User is idle or locked");
+  }
+
+  /**
+   * Handles the end of an idle period
+   * @param {Date} endTime - When the idle period ended
+   * @param {string} date - Date string in YYYY-MM-DD format
+   */
+  async handleIdleEnd(endTime, date) {
+    const idleDuration = Math.floor((endTime - this.idleStart) / 1000);
+    
+    // Create session data
+    const session = {
+      state: "idle",
+      start_time: this.idleStart.toISOString().substring(11, 16),
+      end_time: endTime.toISOString().substring(11, 16),
+      duration_seconds: idleDuration
+    };
+
+    console.log(`User is active again. Idle duration: ${idleDuration}s, Session: ${JSON.stringify(session)}`);
+
+
+    // Save the session
+    await activityStorage.addActivitySession(date, session);
+    
+    // Reset idle start time
+    this.idleStart = null;
+    
+    console.log(`User was idle for ${idleDuration}s`);
+  }
+
+    /**
+   * Cleans up keep-alive resources
+   */
+  cleanup() {
+    if (this.keepAlivePort) {
+      this.keepAlivePort.disconnect();
+    }
+    if (this.keepAliveInterval) {
+      clearInterval(this.keepAliveInterval);
+    }
+    chrome.alarms.clear('keepAlive');
+  }
+}
+
+// Initialize the idle tracker
+const idleTracker = new IdleTracker();
+
+
+// Ensure proper cleanup if the service worker is terminated
+chrome.runtime.onSuspend.addListener(() => {
+  idleTracker.cleanup();
+});
