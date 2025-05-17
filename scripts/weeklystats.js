@@ -40,13 +40,20 @@ export class WeeklyStatsChart {
   processData(rawData) {
     // Convert your storage format to chart-compatible format
     // Example: { Monday: { duration: 120 }, ... } → [120, ...]
-    return rawData.map(entry => {
-      return entry.data?.daily_summary.total_idle_seconds || 0; // Use duration or default to 0
+
+    let data = {
+      durations:  [],
+      dates: []
+    };
+    rawData.forEach(entry => {
+      data.durations.push(entry.data?.daily_summary.total_idle_seconds || 0);
+      data.dates.push(entry.date || null);
     });
+    return data;
   }
 
   isDataEmpty(data) {
-    return !data || data.length === 0 || data.every(item => !item || item === 0);
+    return !data || data.length === 0 || data.durations.every(item => !item || item === 0);
   }
 
   renderChart(data) {
@@ -60,10 +67,10 @@ export class WeeklyStatsChart {
     this.chart = new Chart(ctx, {
       type: this.defaultOptions.type,
       data: {
-        labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        labels: data.dates, 
         datasets: [{
-          label: 'Activity Duration (minutes)',
-          data: data,
+          label: 'Activity Duration',
+          data: data.durations,
           backgroundColor: this.defaultOptions.backgroundColor,
           borderColor: this.defaultOptions.borderColor,
           borderWidth: this.defaultOptions.borderWidth

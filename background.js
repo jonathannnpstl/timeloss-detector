@@ -38,6 +38,8 @@ class IdleTracker {
    * Sets up keep-alive mechanisms to prevent service worker termination
    */
   startKeepAlive() {
+    
+
     // Chrome alarms (most reliable)
     chrome.alarms.create('keepAlive', { periodInMinutes: 4 });
     chrome.alarms.onAlarm.addListener((alarm) => {
@@ -110,7 +112,7 @@ class IdleTracker {
    */
   async handleIdleState(state) {
     const now = new Date();
-    const today = now.toISOString().split("T")[0];
+    const today = now.toLocaleDateString()
 
     try {
       if (state === "idle" || state === "locked") {
@@ -143,8 +145,8 @@ class IdleTracker {
     // Create session data
     const session = {
       state: "idle",
-      start_time: this.idleStart.toISOString().substring(11, 16),
-      end_time: endTime.toISOString().substring(11, 16),
+      start_time: this.idleStart.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      end_time: endTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
       duration_seconds: idleDuration
     };
 
@@ -174,8 +176,17 @@ class IdleTracker {
   }
 }
 
-// Initialize the idle tracker
-const idleTracker = new IdleTracker();
+let idleTracker = null;
+
+function initTracker() {
+  if (!idleTracker) {
+    idleTracker = new IdleTracker();
+  }
+  return idleTracker;
+}
+
+// Initialize when service worker starts
+initTracker();
 
 
 // Ensure proper cleanup if the service worker is terminated

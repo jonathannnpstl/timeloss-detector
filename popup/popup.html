@@ -6,26 +6,39 @@
   </head>
   <body>
     <div class="container" id="top-container">
-      <h2>Idle Time Visualization</h2>
+      <div class="section-header">
+        <h2 class="title-day"></h2>
+        <h2>May 17, 2025</h2>
+      </div>
         <div id="dailyStatsChart">
-          <svg width="300" height="300" viewBox="0 0 400 400">
+        <svg width="300" height="300" viewBox="0 0 400 400">
             <circle cx="200" cy="200" r="140" stroke="#222" stroke-width="30" fill="none" />
           <g id="segments"></g>
           <g id="labels"></g>
           <text id="center-text" class="today" x="200" y="155">Today</text> 
           <text id="center-text" class="time" x="200" y="200">0m</text>
-          <text id="center-text" class="duration" x="200" y="235">Idle Duration</text> <!-- Center text added -->
+          <text id="center-text" class="duration" x="200" y="235">Idle Duration</text>
         </svg>
+        <div id="topIdleSession">
+          <h3>Top Idle Sessions</h3>
+          <div id="topIdleSessionContent">
+          </div>
+        </div>
       </div>
     </div>
   
     <div class="container" id="middle-container">
-      <h2>Statistics and Summary</h2>
+      <div class="section-header">
+        <h2>Daily</h2>
+      </div>
       <div id="weeklyStatsChart"></div>
     </div>
   
     <div class="container" id="bottom-container">
-      <h2>Settings & Controls</h2>
+      <div class="section-header">
+        <h2>Total Duration</h2>
+      </div>
+      <div id="totalStatsChart"></div>
     </div>
     
     <script src="/libs/chart.umd.js"></script>

@@ -6,9 +6,9 @@
 
 body {
   background: #111;
-  color: white;
+  color: #aaaaaa;
   font-family: sans-serif;
-  width: 500px;
+  width: 600px;
 }
 
 .container {
@@ -22,12 +22,8 @@ body {
 
 .container > div {
   display: flex;
-  justify-content: center;
+  /* justify-content: center; */
   align-items: center;
-}
-
-.container:last-child {
-  border-bottom: none;
 }
 
 .hour-label {
@@ -46,13 +42,95 @@ path:hover {
   cursor: pointer;
 }
 
-.time {
+#dailyStatsChart{
+  justify-content: space-evenly;
+}
+
+#top-container .section-header {
+  justify-content: space-between;
+}
+
+#topIdleSessionContent ul {
+  font-size: 14px;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  
+}
+
+#topIdleSession > h3{
+margin-bottom: 6px;
+
+}
+#topIdleSessionContent li {
+  padding: 6px 0;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+#topIdleSessionContent li:last-child {
+  border-bottom: none;
+}
+
+#topIdleSessionContent .duration {
+  color: #aaaaaa;
+}
+
+.container:last-child {
+  border-bottom: none;
+}
+
+
+
+svg .time {
 font-size: 58px;
 }
 
-.today {
+svg .today {
 font-size: 24px;
 }
-.duration {
+svg .duration {
   font-size: 18px;
+}
+
+svg .hour-label{
+
+  font-size: 14px;
+}
+
+
+.section-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #cccccc;
+  border-left: 4px solid #3399ff; /* Accent color matching the idle segments */
+  padding-left: 12px;
+  margin: 20px 0 10px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+#center-text {
+  fill: #cccccc;
+}
+
+
+
+/* Apply to all scrollable elements */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a; /* Dark background for track */
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #cccccc; /* Blue for thumb */
+  border-radius: 8px;
+  border: 2px solid #1a1a1a; /* Creates padding around thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #cccccc; /* Lighter blue on hover */
 }

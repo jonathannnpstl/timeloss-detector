@@ -73,6 +73,25 @@ class ActivityStorage {
     });
   }
 
+  /**
+   * Retrieves the top 5 longest idle sessions for a given date
+   * @param {string} date - Date in YYYY-MM-DD format
+   * @returns {Promise<Array>} - Array of top 5 longest idle sessions
+   */
+  async getTop5LongestIdleSessions(date) {
+    const data = await this.getActivityData(date);
+    if (!data || !Array.isArray(data.activity_sessions)) return [];
+
+    const idleSessions = Array.isArray(data.activity_sessions)
+      ? data.activity_sessions
+        .filter(session => session.state === 'idle')
+        .sort((a, b) => b.duration_seconds - a.duration_seconds)
+        .slice(0, 5)
+      : [];
+
+    return idleSessions;
+  }
+
   /** 
    * Retrieves all activity data from storage
    * @returns {Promise<Object>} - All activity data
@@ -259,7 +278,7 @@ class ActivityStorage {
     for (let i = 0; i < 7; i++) {
       const d = new Date(sunday);
       d.setDate(sunday.getDate() + i);
-      dates.push(d.toISOString().split('T')[0]); // Format as YYYY-MM-DD
+      dates.push(d.toLocaleDateString()); // Format as MM/DD/YYYY
     }
     return dates;
   }

@@ -19,32 +19,31 @@ export class DailyTimeCircle {
     this.labels = document.getElementById("labels");
     this.centerTextToday = document.querySelector(".today");
     this.centerTextTime = document.querySelector(".time");
+    this.titleTextDay = document.querySelector(".title-day");
+    this.topIdleSessionContent = document.getElementById("topIdleSessionContent");
 
-    // Data storage
-    this.data = [
-        { start: "01:45", end: "02:00" },
-        { start: "02:00", end: "03:30" },
-        { start: "04:30", end: "06:00" },
-        { start: "09:15", end: "10:00" }
-    ];
+    // Data
     this.totalDuration = 0;
-    this.date = new Date().toISOString().split("T")[0];
+    this.date = new Date();
+    this.daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   }
 
   // Initialize the visualization
   async init() {
     try {
       // Load data from storage
-      const storedData = await activityStorage.getActivityData(this.date);
+      const storedData = await activityStorage.getActivityData(this.date.toLocaleDateString());
     
       // Process data if needed (convert to array format if different)
       this.data = storedData.activity_sessions || this.data;
-      
-      
-      // Draw visualization
+
+      // Set the date for the title
+      this.titleTextDay.textContent = "Today is " + this.daysOfWeek[this.date.getDay()];
+
       this.drawSegments();
       this.drawHourLabels();
       this.updateCenterText();
+      this.listTopIdleDurationSessions();
     } catch (error) {
       console.error("Error initializing visualization:", error);
     }
@@ -57,6 +56,22 @@ export class DailyTimeCircle {
         start: session.start_time,
         end: session.end_time
     }));
+  }
+
+  listTopIdleDurationSessions() {
+    activityStorage.getTop5LongestIdleSessions(this.date.toLocaleDateString())
+      .then(sessions => {
+        // Process and display the top idle sessions
+        const ul = document.createElement("ul");
+        this.topIdleSessionContent.innerHTML = ""; // Clear previous content
+        sessions.forEach(session => {
+          const listItem = document.createElement("li");
+
+          listItem.innerHTML = `<span class="time-range">${session.start_time} to ${session.end_time}</span> <span class="duration">(${this.formatDurationNatural(Math.round(session.duration_seconds / 60))})</span>`;
+          ul.appendChild(listItem);
+        });
+        this.topIdleSessionContent.appendChild(ul);
+      });
   }
 
   // Convert time string to minutes
@@ -167,6 +182,7 @@ export class DailyTimeCircle {
   updateCenterText() {
     this.centerTextToday.textContent = "Today";
     this.centerTextTime.textContent = this.formatDurationNatural(this.totalDuration);
+    this.centerTextTime.setAttribute("fill", "green");
   }
 
   // Public method to update data

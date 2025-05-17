@@ -12,11 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeVisualizations();
 
   setInterval(() => {
-  chrome.runtime.sendMessage({ type: 'keepAlivePing' })
+    chrome.runtime.sendMessage({ type: 'keepAlivePing' })
+      .catch(() => {
+        // This will help wake up the service worker if needed
+      });
+    console.log("Sending keep-alive ping");
+  }, 20000); // Every 20 seconds
   
-  .catch(() => {
-    // This will help wake up the service worker if needed
-  });
-  console.log("Sending keep-alive ping");
-}, 30000); // Every 30 seconds
 });
