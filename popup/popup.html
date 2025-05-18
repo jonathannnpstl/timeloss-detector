@@ -8,7 +8,7 @@
     <div class="container" id="top-container">
       <div class="section-header">
         <h2 class="title-day"></h2>
-        <h2>May 17, 2025</h2>
+        <h2 class="title-date"></h2>
       </div>
         <div id="dailyStatsChart">
         <svg width="300" height="300" viewBox="0 0 400 400">
@@ -31,14 +31,31 @@
       <div class="section-header">
         <h2>Daily</h2>
       </div>
-      <div id="weeklyStatsChart"></div>
+      <div id="weeklyStatsChart">
+      </div>
     </div>
   
     <div class="container" id="bottom-container">
       <div class="section-header">
-        <h2>Total Duration</h2>
+        <h2>All Time</h2>
       </div>
-      <div id="totalStatsChart"></div>
+      <div id="allTimeStatsChart">
+        <div id="summary-stats-info" class="summary-stats">
+          <div class="summary-item">
+            <h3>Total Idle Time</h3>
+            <p id="totalIdleTime">0m</p>
+          </div>
+          <div class="summary-item">
+            <h3>Average Per Day</h3>
+            <p id="averageIdleTime">0m</p>
+          </div>
+          <div class="summary-item">
+            <h3>Most Active Day</h3>
+            <p id="mostActiveDay">N/A</p>
+          </div>
+        </div>
+        <div id="allTimeStatsChartContent"></div>
+      </div>
     </div>
     
     <script src="/libs/chart.umd.js"></script>

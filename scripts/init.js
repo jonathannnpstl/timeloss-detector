@@ -1,5 +1,6 @@
 import { DailyTimeCircle } from './dailystats.js';
 import { WeeklyStatsChart } from './weeklystats.js';
+import { AllTimeStats } from './alltimestats.js';
 
 export function initializeVisualizations() {
   try {
@@ -16,6 +17,11 @@ export function initializeVisualizations() {
     });
     weeklyView.init();
 
+    const allTimeView = new AllTimeStats('allTimeStatsChart', {
+      noDataText: 'No data available for all time',
+      errorText: 'Error loading data'
+    });
+    allTimeView.init();
   } catch (error) {
     console.error('Failed to initialize visualizations:', error);
     // Handle error (show user message, etc.)

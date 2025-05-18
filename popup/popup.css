@@ -20,7 +20,7 @@ body {
   margin: 10px;
 }
 
-.container > div {
+#top-container > div {
   display: flex;
   /* justify-content: center; */
   align-items: center;
@@ -104,7 +104,7 @@ svg .hour-label{
   color: #cccccc;
   border-left: 4px solid #3399ff; /* Accent color matching the idle segments */
   padding-left: 12px;
-  margin: 20px 0 10px;
+  margin: 10px 0;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -114,6 +114,21 @@ svg .hour-label{
 }
 
 
+
+.summary-stats {
+  display: flex;
+  justify-content: space-between; /* Adds space between the boxes */
+  gap: 20px;
+  padding:  0 15px;
+}
+
+.summary-item{
+  text-align: center;
+}
+
+canvas {
+  margin: 15px 0;
+}
 
 /* Apply to all scrollable elements */
 ::-webkit-scrollbar {

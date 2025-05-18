@@ -1,4 +1,5 @@
 import { activityStorage } from '../utils/storage.js';
+import { formatDurationNatural } from '../utils/helpers.js';
 
 export class DailyTimeCircle {
   constructor(containerId, options = {}) {
@@ -20,6 +21,7 @@ export class DailyTimeCircle {
     this.centerTextToday = document.querySelector(".today");
     this.centerTextTime = document.querySelector(".time");
     this.titleTextDay = document.querySelector(".title-day");
+    this.titleTextDate = document.querySelector(".title-date");
     this.topIdleSessionContent = document.getElementById("topIdleSessionContent");
 
     // Data
@@ -49,15 +51,6 @@ export class DailyTimeCircle {
     }
   }
 
-  // Process raw data into the required format
-  processData(rawData) {
-    // Example conversion - adjust based on your actual data structure
-    return rawData.activity_sessions.map(session => ({
-        start: session.start_time,
-        end: session.end_time
-    }));
-  }
-
   listTopIdleDurationSessions() {
     activityStorage.getTop5LongestIdleSessions(this.date.toLocaleDateString())
       .then(sessions => {
@@ -67,7 +60,7 @@ export class DailyTimeCircle {
         sessions.forEach(session => {
           const listItem = document.createElement("li");
 
-          listItem.innerHTML = `<span class="time-range">${session.start_time} to ${session.end_time}</span> <span class="duration">(${this.formatDurationNatural(Math.round(session.duration_seconds / 60))})</span>`;
+          listItem.innerHTML = `<span class="time-range">${session.start_time} to ${session.end_time}</span> <span class="duration">(${formatDurationNatural((session.duration_seconds+1))})</span>`;
           ul.appendChild(listItem);
         });
         this.topIdleSessionContent.appendChild(ul);
@@ -75,8 +68,9 @@ export class DailyTimeCircle {
   }
 
   // Convert time string to minutes
-  timeToMinutes(timeStr) {
-    const [h, m] = timeStr.split(":").map(Number);
+  _timeToMinutes(timeStr) {
+    const parts = timeStr.split(":").map(Number);
+    const [h, m, s] = [parts[0] || 0, parts[1] || 0, parts[2] || 0];
     return h * 60 + m;
   }
 
@@ -101,39 +95,42 @@ export class DailyTimeCircle {
     ].join(" ");
   }
 
-  // Calculate duration between two times
-  getDurationInMinutes(start, end) {
-    const startMinutes = this.timeToMinutes(start);
-    const endMinutes = this.timeToMinutes(end);
+  // Calculate duration between two times in seconds (supports HH:MM:SS format)
+  getDurationInSeconds(start, end) {
+    const timeToSeconds = (timeStr) => {
+      const parts = timeStr.split(":").map(Number);
+      const [h, m, s] = [parts[0] || 0, parts[1] || 0, parts[2] || 0];
+      return h * 3600 + m * 60 + s;
+    };
 
-    if (endMinutes >= startMinutes) {
-      return endMinutes - startMinutes;
+    const startSeconds = timeToSeconds(start);
+    const endSeconds = timeToSeconds(end);
+
+    if (endSeconds >= startSeconds) {
+      return endSeconds - startSeconds;
     } else {
-      return (1440 - startMinutes) + endMinutes; // crosses midnight
+      return (86400 - startSeconds) + endSeconds; // crosses midnight
     }
   }
 
   // Format duration in natural language
-  formatDurationNatural(minutes) {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    
-    if (hours && mins) return `${hours}h ${mins}m`;
-    if (hours) return `${hours}h`;
-    if (mins) return `${mins}m`;
-    return "0m";
-  }
+  
 
   // Draw all time segments
   drawSegments() {
     this.totalDuration = 0; // Reset total duration
     
     this.data.forEach(({ start_time, end_time }) => {
-      const duration = this.getDurationInMinutes(start_time, end_time);
+      const duration = this.getDurationInSeconds(start_time, end_time);
       this.totalDuration += duration;
 
-      const startDeg = (this.timeToMinutes(start_time) / 1440) * 360;
-      const endDeg = (this.timeToMinutes(end_time) / 1440) * 360;
+      let startDeg = (this._timeToMinutes(start_time) / 1440) * 360;
+      let endDeg = (this._timeToMinutes(end_time) / 1440) * 360;
+
+      // If start_time and end_time are the same, give it a default 1 minute degree
+      if (startDeg === endDeg) {
+        endDeg = ((this._timeToMinutes(end_time) + 1) / 1440) * 360;
+      }
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
@@ -150,7 +147,7 @@ export class DailyTimeCircle {
       // Add interactivity
       path.addEventListener('mouseenter', () => {
         this.centerTextToday.textContent = `${start_time} - ${end_time}`;
-        this.centerTextTime.textContent = this.formatDurationNatural(duration);
+        this.centerTextTime.textContent = formatDurationNatural(duration);
       });
       
       path.addEventListener('mouseleave', () => {
@@ -181,8 +178,7 @@ export class DailyTimeCircle {
   // Update the center text with total duration
   updateCenterText() {
     this.centerTextToday.textContent = "Today";
-    this.centerTextTime.textContent = this.formatDurationNatural(this.totalDuration);
-    this.centerTextTime.setAttribute("fill", "green");
+    this.centerTextTime.textContent = formatDurationNatural(this.totalDuration);
   }
 
   // Public method to update data

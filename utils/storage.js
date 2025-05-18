@@ -192,13 +192,16 @@ class ActivityStorage {
    * @returns {Object} - Time information
    */
   _getSessionTimeInfo(session) {
-    const startTime = new Date(session.start_time);
-    const endTime = new Date(session.end_time);
+    const [startHour, startMin, startSec] = session.start_time.split(":").map(Number);
+    const [endHour, endMin, endSec] = session.end_time.split(":").map(Number);
+    const startTime = session.start_time
+    const endTime = session.end_time
+
     return {
       startTime,
       endTime,
-      startHour: startTime.getHours(),
-      endHour: endTime.getHours()
+      startHour: startHour,
+      endHour: endHour
     };
   }
 
@@ -233,9 +236,14 @@ class ActivityStorage {
    */
   _updateMultipleHours(data, startTime, endTime, startHour, endHour) {
     // Calculate first hour duration (from start to end of first hour)
-    const firstHourEnd = new Date(startTime);
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const start = new Date(`${todayStr}T${startTime}`);
+    const end = new Date(`${todayStr}T${endTime}`);
+
+    const firstHourEnd = new Date(start);
     firstHourEnd.setHours(startHour + 1, 0, 0, 0);
-    const firstHourDuration = Math.floor((firstHourEnd - startTime) / 1000);
+    const firstHourDuration = Math.floor((firstHourEnd - start) / 1000);
     this._updateSingleHour(data, startHour, firstHourDuration);
 
     // Update all complete hours in between
@@ -244,9 +252,9 @@ class ActivityStorage {
     }
 
     // Calculate last hour duration (from start of last hour to end)
-    const lastHourStart = new Date(endTime);
+    const lastHourStart = new Date(end);
     lastHourStart.setHours(endHour, 0, 0, 0);
-    const lastHourDuration = Math.floor((endTime - lastHourStart) / 1000);
+    const lastHourDuration = Math.floor((end - lastHourStart) / 1000);
     this._updateSingleHour(data, endHour, lastHourDuration);
   }
 
@@ -270,15 +278,18 @@ class ActivityStorage {
    * @returns {Array} - Array of dates in YYYY-MM-DD format
    */
   _getWeekRange(date = new Date()) {
-    const day = date.getDay(); // 0=Sunday, 6=Saturday
-    const sunday = new Date(date);
-    sunday.setDate(date.getDate() - day);
-    
+    // Return an array of 7 dates ending with the given date (YYYY-MM-DD format)
     const dates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(sunday);
-      d.setDate(sunday.getDate() + i);
-      dates.push(d.toLocaleDateString()); // Format as MM/DD/YYYY
+    const end = new Date(date);
+    end.setHours(0, 0, 0, 0);
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(end);
+      d.setDate(end.getDate() - i);
+      // Format as YYYY-MM-DD
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1);
+      const dd = String(d.getDate());
+      dates.push(`${mm}/${dd}/${yyyy}`);
     }
     return dates;
   }
@@ -290,21 +301,22 @@ class ActivityStorage {
   async getWeeklyData() {
     const weekDates = this._getWeekRange();
     const storedDates = await this.getAllActivityData();
-    console.log("Stored data",storedDates);
+    console.log("Stored dates", storedDates);
     
+    
+
     return new Promise((resolve) => {
       // Only request dates that exist in storage
       const existingDates = typeof storedDates === 'object' && storedDates !== null 
         ? weekDates.filter(date => Object.prototype.hasOwnProperty.call(storedDates, date)) 
         : [];
-      console.log("Existing dates",existingDates);
-      
+
       if (existingDates.length === 0) {
         resolve(weekDates.map(date => ({ date, data: null })));
         return;
       }
-      
-      chrome.storage.local.get(existingDates, (result) => {
+
+      chrome.storage.local.get(weekDates, (result) => {
         const weekData = weekDates.map(date => ({
           date,
           data: result[date] || null

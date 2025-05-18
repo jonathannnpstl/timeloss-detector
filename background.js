@@ -63,7 +63,7 @@ class IdleTracker {
         await this.handleIdleStart(now);
       } else if (currentState === 'active' && this.idleStart) {
         // Missed active state
-        const today = now.toISOString().split("T")[0];
+        const today = now;
         await this.handleIdleEnd(now, today);
       }
     } catch (error) {
@@ -112,7 +112,7 @@ class IdleTracker {
    */
   async handleIdleState(state) {
     const now = new Date();
-    const today = now.toLocaleDateString()
+    const today = now.toLocaleDateString().toString();
 
     try {
       if (state === "idle" || state === "locked") {
@@ -137,7 +137,7 @@ class IdleTracker {
   /**
    * Handles the end of an idle period
    * @param {Date} endTime - When the idle period ended
-   * @param {string} date - Date string in YYYY-MM-DD format
+   * @param {string} date - Date string in MM/DD/YYYY format
    */
   async handleIdleEnd(endTime, date) {
     const idleDuration = Math.floor((endTime - this.idleStart) / 1000);
@@ -145,8 +145,8 @@ class IdleTracker {
     // Create session data
     const session = {
       state: "idle",
-      start_time: this.idleStart.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-      end_time: endTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      start_time: this.idleStart.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).toString(),
+      end_time: endTime.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).toString(),
       duration_seconds: idleDuration
     };
 

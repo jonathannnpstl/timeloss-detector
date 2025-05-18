@@ -3,41 +3,59 @@ import { activityStorage } from "../utils/storage.js";
 
 export class WeeklyStatsChart {
   constructor(containerId, options = {}) {
-    this.canvasId = "weeklyChart";
-    this.defaultOptions = {
+    this.options = {
       type: 'bar',
       backgroundColor: 'rgba(54, 162, 235, 0.5)',
       borderColor: 'rgba(54, 162, 235, 1)',
       borderWidth: 1,
+      noDataText: 'No data available for all time',
+      errorText: 'Error loading data',
       ...options
     };
-    this.chart = null;
-    this.container= document.getElementById(containerId)
+    this.container = document.getElementById(containerId);
+    this.lineChart = null;
+    this.barChart = null;
   }
 
   async init() {
     try {
-      const weeklyData = await this.fetchData();
-      console.log("Weekly data:", weeklyData);
+      const rawData = await activityStorage.getWeeklyData();
+      const weeklyBarChartData = this._processBarChartData(rawData);
+      const weeklyLineChartData = this._processLineChartData(rawData);
       
+
       // Check if data is empty (all zeros or undefined)
-      if (this.isDataEmpty(weeklyData)) {
+      if (this.isDataEmpty(weeklyBarChartData)|| weeklyLineChartData.length === 0) {
         this.showNoDataState();
       } else {
-        this.renderChart(weeklyData);
+        this.renderBarChart(weeklyBarChartData);
+        this.renderLineChart(weeklyLineChartData);
       }
     } catch (error) {
       console.error('Error initializing weekly chart:', error);
-      this.showErrorState();
     }
   }
 
-  async fetchData() {
-    const rawData = await activityStorage.getWeeklyData();
-    return this.processData(rawData);
+  _processLineChartData(rawData) {
+    // Aggregate hourly idle durations across all days
+    if (!rawData || rawData.length === 0) return Array(24).fill(0);
+
+    const hourlyTotals = Array(24).fill(0);
+  
+    rawData.forEach(entry => {
+      const hours = entry.data?.hourly_activity || [];
+      for (let i = 0; i < 24; i++) {
+        hourlyTotals[i] += hours[i]?.idle_seconds || 0;
+      }
+    });
+
+    hourlyTotals.forEach((value, index) => {
+      hourlyTotals[index] = Math.floor(value / 60); // Convert seconds to minutes
+    });
+    return hourlyTotals;
   }
 
-  processData(rawData) {
+  _processBarChartData(rawData) {
     // Convert your storage format to chart-compatible format
     // Example: { Monday: { duration: 120 }, ... } → [120, ...]
 
@@ -56,24 +74,115 @@ export class WeeklyStatsChart {
     return !data || data.length === 0 || data.durations.every(item => !item || item === 0);
   }
 
-  renderChart(data) {
-    this.container.innerHTML = `<canvas id="${this.canvasId}"></canvas>`;
-
-    const ctx = document.getElementById(this.canvasId);
-    if (!ctx) {
-      throw new Error(`Canvas element with ID ${this.canvasId} not found`);
+  renderLineChart(lineChartData) {
+    if (this.lineChart) {
+      this.lineChart.destroy();
     }
 
-    this.chart = new Chart(ctx, {
-      type: this.defaultOptions.type,
+    const canvas = document.createElement('canvas');
+    canvas.id = 'weeklyLineChart';
+    this.container.appendChild(canvas);
+
+    const maxMinutes = Math.max(...lineChartData);
+    if (maxMinutes === 0) {
+        this.container.innerHTML = `<p>${this.options.noDataText}</p>`;
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+    throw new Error(`Canvas element with ID ${canvas.id} not found`);
+    }
+
+    this.lineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+      labels: [...Array(24).keys()].map(h => h.toString().padStart(2, '0')), // '00' to '23'
+      datasets: [{
+          label: 'Idle Duration (minutes)',
+          data: lineChartData,
+          borderColor: 'rgba(30, 144, 255, 1)',
+          backgroundColor: 'rgba(30, 144, 255, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointBackgroundColor: 'rgba(30, 144, 255, 1)'
+      }]
+      },
+      options: {
+      responsive: true,
+      scales: {
+          x: {
+          title: {
+              display: true,
+              text: 'Hour of Day',
+              color: '#ccc'
+          },
+          ticks: {
+              color: '#ccc'
+          },
+          grid: {
+              color: '#333'
+          }
+          },
+          y: {
+          title: {
+              display: true,
+              text: 'Idle Time (minutes)',
+              color: '#ccc'
+          },
+          beginAtZero: true,
+          max: 60,
+          ticks: {
+              color: '#ccc'
+          },
+          grid: {
+              color: '#333'
+          }
+          }
+      },
+      plugins: {
+          legend: {
+          labels: {
+              color: '#ccc'
+          }
+          },
+          tooltip: {
+          callbacks: {
+              label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} mins`
+          }
+          }
+      }
+    }
+    });
+  }
+
+  renderBarChart(data) {
+
+    if (this.barChart) {
+      this.barChart.destroy();
+    }
+
+
+    const canvas = document.createElement('canvas');
+    canvas.id = 'weeklyBarChart';
+    this.container.appendChild(canvas);
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error(`Canvas element with ID ${canvas.id} not found`);
+    }
+
+    this.barChart = new Chart(ctx, {
+      type: this.options.type,
       data: {
         labels: data.dates, 
         datasets: [{
-          label: 'Activity Duration',
+          label: 'Idle Duration',
           data: data.durations,
-          backgroundColor: this.defaultOptions.backgroundColor,
-          borderColor: this.defaultOptions.borderColor,
-          borderWidth: this.defaultOptions.borderWidth
+          backgroundColor: this.options.backgroundColor,
+          borderColor: this.options.borderColor,
+          borderWidth: this.options.borderWidth
         }]
       },
       options: {
@@ -83,7 +192,7 @@ export class WeeklyStatsChart {
             beginAtZero: true,
             title: {
               display: true,
-              text: 'Minutes'
+              text: 'Seconds'
             }
           }
         },
@@ -108,7 +217,7 @@ export class WeeklyStatsChart {
 
     const message = document.createElement('div');
     message.className = 'no-data-message';
-    message.textContent = this.defaultOptions.noDataText;
+    message.textContent = this.options.noDataText;
 
      message.style.cssText = `
       display: flex;
@@ -127,12 +236,6 @@ export class WeeklyStatsChart {
     this.container.appendChild(message);
   }
 
-  showErrorState() {
-    const ctx = document.getElementById(this.canvasId);
-    if (ctx) {
-      ctx.innerHTML = '<p class="chart-error">Failed to load activity data</p>';
-    }
-  }
 
   destroy() {
     if (this.chart) {
