@@ -7,7 +7,8 @@ export function formatDurationNatural(seconds) {
     let result = [];
     if (hours) result.push(`${hours}h`);
     if (mins) result.push(`${mins}m`);
-    if (secs || result.length === 0) result.push(`${secs}s`);
+ 
+    if (hours === 0 && (secs || result.length === 0)) result.push(`${secs}s`);
     return result.join(' ');
   }
 

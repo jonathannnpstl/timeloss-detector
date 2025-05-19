@@ -1,6 +1,7 @@
 import { activityStorage } from '../utils/storage.js';
 import { formatDurationNatural } from '../utils/helpers.js';
 
+
 export class DailyTimeCircle {
   constructor(containerId, options = {}) {
     // Configuration with defaults

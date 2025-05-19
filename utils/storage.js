@@ -137,6 +137,7 @@ class ActivityStorage {
    */
   _createEmptyDayData(date) {
     return {
+      state: "idle",
       date,
       activity_sessions: [],
       hourly_activity: this._initializeHourlyActivity(),
@@ -214,16 +215,16 @@ class ActivityStorage {
   _updateSingleHour(data, hour, duration) {
     // data.hourly_activity[hour].idle_seconds += duration;
     // Ensure hourly_activity exists
-  if (!data.hourly_activity) data.hourly_activity = {};
-  
-  // Initialize hour record if missing
-  if (!data.hourly_activity[hour]) {
-    data.hourly_activity[hour] = { idle_seconds: 0 };
-  }
-  
-  // Safely increment (handle undefined/NaN cases)
-  const current = data.hourly_activity[hour].idle_seconds;
-  data.hourly_activity[hour].idle_seconds =  (typeof current === 'number' ? current : 0) + duration;
+    if (!data.hourly_activity) data.hourly_activity = {};
+    
+    // Initialize hour record if missing
+    if (!data.hourly_activity[hour]) {
+      data.hourly_activity[hour] = { idle_seconds: 0 };
+    }
+    
+    // Safely increment (handle undefined/NaN cases)
+    const current = data.hourly_activity[hour].idle_seconds;
+    data.hourly_activity[hour].idle_seconds =  (typeof current === 'number' ? current : 0) + duration;
   }
 
   /**
