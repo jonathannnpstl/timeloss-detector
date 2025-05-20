@@ -55,8 +55,8 @@
  * }
  */
 
-class ActivityStorage {
-  constructor(storage = chrome.storage.local) {
+export class ActivityStorage {
+  constructor(storage ) {
     this.storage = storage;
   }
 

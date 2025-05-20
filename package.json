@@ -1,0 +1,19 @@
+{
+  "name": "timeloss_detector",
+  "version": "1.0.0",
+  "description": "Web extension to track idle activities",
+  "main": "background.js",
+  "directories": {
+    "test": "tests"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
