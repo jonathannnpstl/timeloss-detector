@@ -56,8 +56,8 @@
  */
 
 class ActivityStorage {
-  constructor() {
-    this.storage = chrome.storage.local;
+  constructor(storage = chrome.storage.local) {
+    this.storage = storage;
   }
 
   /**
@@ -137,7 +137,6 @@ class ActivityStorage {
    */
   _createEmptyDayData(date) {
     return {
-      state: "idle",
       date,
       activity_sessions: [],
       hourly_activity: this._initializeHourlyActivity(),

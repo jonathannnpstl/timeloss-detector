@@ -22,6 +22,8 @@ export class WeeklyStatsChart {
       const rawData = await activityStorage.getWeeklyData();
       const weeklyBarChartData = this._processBarChartData(rawData);
       const weeklyLineChartData = this._processLineChartData(rawData);
+      console.log(weeklyBarChartData, weeklyLineChartData);
+      
       
 
       // Check if data is empty (all zeros or undefined)
