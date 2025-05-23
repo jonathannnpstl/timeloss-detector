@@ -15,7 +15,7 @@ export class AllTimeStats {
         this.allTimeData = null;
         this.totalIdleTimeContainer = document.getElementById('totalIdleTime');
         this.averageIdleTimeContainer = document.getElementById('averageIdleTime');
-        this.mostActiveDayContainer = document.getElementById('mostInactiveDay');
+        this.mostInactiveDayContainer = document.getElementById('mostInactiveDay');
         this.chart = null;
         this.options = {
             noDataText: 'No data available for all time',
@@ -82,8 +82,8 @@ export class AllTimeStats {
         if (this.averageIdleTimeContainer) {
             this.averageIdleTimeContainer.textContent = `${formatDurationNatural(this.averageIdleTime)}`;
         }
-        if (this.mostActiveDayContainer) {
-            this.mostActiveDayContainer.textContent = `${formatDateReadable(this.mostIdleDay.date)} (${formatDurationNatural(this.mostIdleDay.totalIdle)})`;
+        if (this.mostInactiveDayContainer) {
+            this.mostInactiveDayContainer.textContent = `${formatDateReadable(this.mostIdleDay.date)} (${formatDurationNatural(this.mostIdleDay.totalIdle)})`;
         }
     }
 
