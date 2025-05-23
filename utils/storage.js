@@ -1,32 +1,3 @@
-/**
- * DATA MODEL
- * 
- *"date": "2023-11-15",
-  "activity_sessions": [
-    {
-      "state": "active", // or "idle"
-      "start_time": "2023-11-15T09:15:00Z",
-      "end_time": "2023-11-15T09:30:00Z",
-      "duration_seconds": 900
-    },
-    {
-      "state": "idle",
-      "start_time": "2023-11-15T09:30:00Z",
-      "end_time": "2023-11-15T09:45:00Z",
-      "duration_seconds": 900
-    }
-  ],
-  "hourly_activity": [
-    {"hour": 0, "idle_seconds": 3300},
-    {"hour": 1, "idle_seconds": 3150}
-  ]
-  "daily_summary": {
-    "total_active_seconds": 18000,
-    "total_idle_seconds": 68400,
-    "active_periods": 12
-  }
- * 
- */
 
 /**
  * Storage implementation for activity tracking data
@@ -36,12 +7,12 @@
  * 
  * Data Structure:
  * {
- *   date: "YYYY-MM-DD",
+ *   date: "MM/DD/YYYY",
  *   activity_sessions: [
  *     {
  *       state: "idle",
- *       start_time: "ISO_TIMESTAMP",
- *       end_time: "ISO_TIMESTAMP",
+ *       start_time: "TIMESTAMP",
+ *       end_time: "TIMESTAMP",
  *       duration_seconds: number
  *     }
  *   ],
@@ -56,13 +27,13 @@
  */
 
 export class ActivityStorage {
-  constructor(storage ) {
+  constructor(storage = chrome.storage.local) { //REMOVE chrome.storage.local when testing
     this.storage = storage;
   }
 
   /**
    * Retrieves activity data for a specific date
-   * @param {string} date - Date in YYYY-MM-DD format
+   * @param {string} date - Date in MM/DD/YYYY format
    * @returns {Promise<Object>} - Activity data for the date
    */
   async getActivityData(date) {
@@ -75,7 +46,7 @@ export class ActivityStorage {
 
   /**
    * Retrieves the top 5 longest idle sessions for a given date
-   * @param {string} date - Date in YYYY-MM-DD format
+   * @param {string} date - Date in MM/DD/YYYY format
    * @returns {Promise<Array>} - Array of top 5 longest idle sessions
    */
   async getTop5LongestIdleSessions(date) {
@@ -106,7 +77,7 @@ export class ActivityStorage {
 
   /**
    * Saves activity data for a specific date
-   * @param {string} date - Date in YYYY-MM-DD format
+   * @param {string} date - Date in MM/DD/YYYY format
    * @param {Object} data - Activity data to save
    */
   async saveActivityData(date, data) {
@@ -117,7 +88,7 @@ export class ActivityStorage {
 
   /**
    * Adds a new activity session and updates related statistics
-   * @param {string} date - Date in YYYY-MM-DD format
+   * @param {string} date - Date in MM/DD/YYYY format
    * @param {Object} session - Activity session data
    */
   async addActivitySession(date, session) {
@@ -132,7 +103,7 @@ export class ActivityStorage {
 
   /**
    * Creates an empty data structure for a new day
-   * @param {string} date - Date in YYYY-MM-DD format
+   * @param {string} date - Date in MM/DD/YYYY format
    * @returns {Object} - Empty day data structure
    */
   _createEmptyDayData(date) {
@@ -275,17 +246,17 @@ export class ActivityStorage {
   /**
    * Retrieves the week range (Sunday to Saturday) for a given date
    * @param {Date} date - Date object (default: today)
-   * @returns {Array} - Array of dates in YYYY-MM-DD format
+   * @returns {Array} - Array of dates in MM/DD/YYYY format
    */
   _getWeekRange(date = new Date()) {
-    // Return an array of 7 dates ending with the given date (YYYY-MM-DD format)
+    // Return an array of 7 dates ending with the given date (MM/DD/YYYY format)
     const dates = [];
     const end = new Date(date);
     end.setHours(0, 0, 0, 0);
     for (let i = 6; i >= 0; i--) {
       const d = new Date(end);
       d.setDate(end.getDate() - i);
-      // Format as YYYY-MM-DD
+      // Format as MM/DD/YYYY
       const yyyy = d.getFullYear();
       const mm = String(d.getMonth() + 1);
       const dd = String(d.getDate());

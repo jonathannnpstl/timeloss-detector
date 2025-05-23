@@ -1,7 +1,7 @@
 import { ActivityStorage } from '../../utils/storage.js';
 
 const mockStorage = {
-  data: {"05/2/2025": { date: "05/20/2025", activity_sessions: [], hourly_activity: [], daily_summary: { total_idle_seconds: 15 } } },
+  data: {"05/20/2025": { date: "05/20/2025", activity_sessions: [], hourly_activity: [], daily_summary: { total_idle_seconds: 15 } } },
   get(keys, callback) {
     if (keys === null) {
       callback(this.data);
@@ -57,11 +57,11 @@ describe('ActivityStorage', () => {
     const data = {
       date,
       activity_sessions: [
-        { state: "idle", start_time: "2025-05-20T03:15:18Z", end_time: "2025-05-20T03:25:18Z", duration_seconds: 600 },
-        { state: "idle", start_time: "2025-05-20T04:15:18Z", end_time: "2025-05-20T04:25:18Z", duration_seconds: 300 },
-        { state: "idle", start_time: "2025-05-20T05:15:18Z", end_time: "2025-05-20T05:25:18Z", duration_seconds: 200 },
-        { state: "idle", start_time: "2025-05-20T06:15:18Z", end_time: "2025-05-20T06:25:18Z", duration_seconds: 700 },
-        { state: "idle", start_time: "2025-05-20T07:15:18Z", end_time: "2025-05-20T07:25:18Z", duration_seconds: 400 }
+        { state: "idle", start_time: "03:15:18", end_time: "03:25:18", duration_seconds: 600 },
+        { state: "idle", start_time: "04:15:18", end_time: "04:25:18", duration_seconds: 300 },
+        { state: "idle", start_time: "05:15:18", end_time: "05:25:18", duration_seconds: 200 },
+        { state: "idle", start_time: "06:15:18", end_time: "06:25:18", duration_seconds: 700 },
+        { state: "idle", start_time: "07:15:18", end_time: "07:25:18", duration_seconds: 400 }
       ],
       hourly_activity: [{ hour: 0, idle_seconds: 5 }],
       daily_summary: { total_idle_seconds: 15 }
@@ -78,13 +78,13 @@ describe('ActivityStorage', () => {
     expect(topSessions[4].duration_seconds).toBe(200);
   });
 
-  it('returns empty array if no idle sessions exist', async () => {
-    const date = '05/20/2025';
+  it('returns top longest idle sessions fewer than 5 sessions', async () => {
+    const date = '05/21/2025';
     const data = {
       date,
       activity_sessions: [
-        { state: "active", start_time: "2025-05-20T03:15:18Z", end_time: "2025-05-20T03:25:18Z", duration_seconds: 600 },
-        { state: "active", start_time: "2025-05-20T04:15:18Z", end_time: "2025-05-20T04:25:18Z", duration_seconds: 300 }
+        { state: "idle", start_time: "03:15:18", end_time: "03:25:18", duration_seconds: 600 },
+        { state: "idle", start_time: "04:15:18", end_time: "04:25:18", duration_seconds: 300 }
       ],
       hourly_activity: [{ hour: 0, idle_seconds: 5 }],
       daily_summary: { total_idle_seconds: 15 }
@@ -93,6 +93,6 @@ describe('ActivityStorage', () => {
     await storage.saveActivityData(date, data);
     const topSessions = await storage.getTop5LongestIdleSessions(date);
 
-    expect(topSessions.length).toBe(0);
+    expect(topSessions.length).toBe(2);
   });
 });
