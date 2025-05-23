@@ -15,7 +15,7 @@ export class AllTimeStats {
         this.allTimeData = null;
         this.totalIdleTimeContainer = document.getElementById('totalIdleTime');
         this.averageIdleTimeContainer = document.getElementById('averageIdleTime');
-        this.mostActiveDayContainer = document.getElementById('mostActiveDay');
+        this.mostActiveDayContainer = document.getElementById('mostInactiveDay');
         this.chart = null;
         this.options = {
             noDataText: 'No data available for all time',
