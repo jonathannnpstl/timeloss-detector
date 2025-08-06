@@ -1,4 +1,4 @@
-# Timeloss Detector
+# Timeloss Tracker
 A browser extension that monitors user idle sessions, presenting the data through intuitive visualizations to help understand productivity patterns.
 
 **Note:** This project was made with the help of AI.
